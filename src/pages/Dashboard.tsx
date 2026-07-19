@@ -1,43 +1,340 @@
+import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
-import { Card } from "@/components/ui/Card";
+import { Panel } from "@/components/ui/Panel";
+import { Stat } from "@/components/ui/Stat";
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { HeroInsight, QuietInsight } from "@/components/dashboard/AiInsight";
+import { EstateHero } from "@/components/dashboard/EstateHero";
 import { useAuth } from "@/auth/AuthContext";
+import {
+  DEMO_TODAY,
+  INSIGHTS,
+  getTotalStock,
+  getMonthRevenue,
+  getOpenOrdersCount,
+  getArSnapshot,
+  getCaptureRate,
+  getLowStock,
+  getRecentOrders,
+  getTopWines,
+  getTopCustomers,
+  customerById,
+  type Order,
+} from "@/fixtures";
+import { formatEuro, formatEuroCompact, formatNumber, formatDate } from "@/lib/format";
 
 /**
- * Dashboard — MINIMAL PLACEHOLDER for Step 0.
+ * Dashboard — the pitch's hero screen.
  * ---------------------------------------------------------------------------
- * Intentionally sparse: this step delivers the shell only. The real dashboard
- * (KPI row, AI-insight hero, focused panels, estate hero image) is built in a
- * later step. This just proves the shell renders a screen correctly in
- * Daniele's Touch.
+ * Everything here reads from the fixtures via selectors; nothing computes or
+ * mutates real state. Layout: KPI row -> AI-insight hero (+ two quieter ones)
+ * -> focused panels (alert scorte, ordini recenti, top vini, top clienti,
+ * snapshot AR, estate image).
  */
+
+// -- small label / tone maps -------------------------------------------------
+
+// Order lifecycle status -> badge tone.
+const ORDER_STATUS_TONE: Record<Order["status"], BadgeTone> = {
+  bozza: "neutral",
+  confermato: "neutral",
+  preparato: "accent",
+  spedito: "accent",
+  fatturato: "accent",
+  pagato: "ok",
+};
+
+// Payment status -> badge tone.
+const PAYMENT_TONE: Record<Order["paymentStatus"], BadgeTone> = {
+  pagato: "ok",
+  "in-attesa": "warn",
+  scaduto: "err",
+};
+
+// Human label for a payment status.
+const PAYMENT_LABEL: Record<Order["paymentStatus"], string> = {
+  pagato: "Pagato",
+  "in-attesa": "In attesa",
+  scaduto: "Scaduto",
+};
+
+// Capitalise the first letter (channel / status words are already Italian).
+function cap(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// Full Italian date for the header subtitle, capitalised.
+function longDateIt(d: Date): string {
+  const s = new Intl.DateTimeFormat("it-IT", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(d);
+  return cap(s);
+}
+
 export function Dashboard() {
   const { user } = useAuth();
+
+  // Derived view models (read-only).
+  const stock = getTotalStock();
+  const monthRevenue = getMonthRevenue();
+  const openOrders = getOpenOrdersCount();
+  const ar = getArSnapshot();
+  const capture = getCaptureRate();
+  const lowStock = getLowStock();
+  const recentOrders = getRecentOrders(6);
+  const topWines = getTopWines(4);
+  const topCustomers = getTopCustomers(5);
+
+  // Split insights: the hero (first) and the quieter remainder.
+  const [heroInsight, ...quietInsights] = INSIGHTS;
+
+  // Max bottles among top wines, for the proportional bars.
+  const maxWineBottles = Math.max(...topWines.map((t) => t.bottles), 1);
 
   return (
     <>
       <PageHeader
         eyebrow="ARBISU Cantina"
         title={`Buongiorno, ${user.estate}`}
-        subtitle="Questa è la panoramica della tua cantina. I dati e gli approfondimenti arrivano nel prossimo passaggio."
+        subtitle={longDateIt(DEMO_TODAY)}
         actions={<Button variant="primary">Nuovo ordine</Button>}
       />
 
-      <Card className="flex flex-col items-start gap-s3">
-        <span className="inline-flex items-center gap-s2 rounded-pill bg-accent-weak px-s3 py-s1 text-[12px] font-semibold text-accent">
-          <span className="h-[7px] w-[7px] rounded-full bg-accent" />
-          Shell pronta
-        </span>
-        <h2 className="font-display text-[22px] font-bold text-ink font-display-tight">
-          La struttura dell&apos;app è pronta
-        </h2>
-        <p className="max-w-[640px] text-[15px] leading-relaxed text-ink-2">
-          Navigazione, tema e login dimostrativo sono attivi. Le sezioni non
-          ancora sviluppate mostrano un segnaposto “In arrivo”. Il cruscotto con
-          gli indicatori e l&apos;assistente intelligente verranno costruiti nei
-          passaggi successivi.
-        </p>
-      </Card>
+      {/* ---- KPI ROW ------------------------------------------------------ */}
+      <div className="grid grid-cols-2 gap-s4 sm:grid-cols-3 xl:grid-cols-5">
+        <Stat
+          label="Giacenze totali"
+          value={
+            <>
+              {formatNumber(stock.bottles)}{" "}
+              <span className="text-[16px] font-semibold text-ink-3">bott.</span>
+            </>
+          }
+          sub={`${formatNumber(stock.cases)} casse`}
+        />
+        <Stat
+          label="Ricavi di gennaio"
+          value={formatEuroCompact(monthRevenue)}
+          delta="+18% sul mese"
+          deltaTone="up"
+        />
+        <Stat
+          label="Ordini aperti"
+          value={formatNumber(openOrders)}
+          sub="in lavorazione"
+        />
+        <Stat
+          label="Scaduto"
+          value={formatEuroCompact(ar.scadutoEur)}
+          sub={`${formatEuroCompact(ar.totalEur)} da incassare`}
+          delta={`${ar.scadutaCount} fattura scaduta`}
+          deltaTone="down"
+        />
+        <Stat
+          label="Capture convenzionale"
+          value={`${capture.pct}%`}
+          delta={`+${capture.deltaPct} pt`}
+          deltaTone="up"
+        />
+      </div>
+
+      {/* ---- AI INSIGHTS -------------------------------------------------- */}
+      <div className="mt-s6 space-y-s4">
+        <HeroInsight insight={heroInsight} />
+        <div className="grid gap-s3 lg:grid-cols-2">
+          {quietInsights.map((ins) => (
+            <QuietInsight key={ins.id} insight={ins} />
+          ))}
+        </div>
+      </div>
+
+      {/* ---- PANELS: row 1 ----------------------------------------------- */}
+      <div className="mt-s6 grid gap-s5 lg:grid-cols-3">
+        {/* Alert scorte basse */}
+        <Panel
+          title="Scorte basse"
+          caption="Annate in commercio sotto soglia"
+          action={
+            <Link to="/inventario">
+              <Button variant="ghost" size="sm">
+                Giacenze
+              </Button>
+            </Link>
+          }
+        >
+          <ul className="space-y-s3">
+            {lowStock.map(({ wine, vintage }) => {
+              // Deeper into the threshold -> danger, otherwise warning.
+              const ratio = vintage.stockBottles / vintage.lowStockThreshold;
+              const tone: BadgeTone = ratio < 0.7 ? "err" : "warn";
+              return (
+                <li
+                  key={vintage.id}
+                  className="flex items-center justify-between gap-s3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-[14px] font-semibold text-ink">
+                      {wine.name} <span className="num text-ink-3">{vintage.year}</span>
+                    </p>
+                    <p className="num text-[13px] text-ink-3">
+                      {formatNumber(vintage.stockBottles)} bottiglie ·{" "}
+                      {formatNumber(vintage.stockCases)} casse
+                    </p>
+                  </div>
+                  <Badge tone={tone}>
+                    {tone === "err" ? "Critico" : "Basso"}
+                  </Badge>
+                </li>
+              );
+            })}
+          </ul>
+        </Panel>
+
+        {/* Ordini recenti — spans two columns */}
+        <Panel
+          title="Ordini recenti"
+          className="lg:col-span-2"
+          action={
+            <Link to="/ordini">
+              <Button variant="ghost" size="sm">
+                Tutti gli ordini
+              </Button>
+            </Link>
+          }
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full text-[14px]">
+              <thead>
+                <tr className="text-left text-[11px] font-bold uppercase tracking-[0.06em] text-ink-3">
+                  <th className="pb-s2 pr-s3 font-bold">Ordine</th>
+                  <th className="pb-s2 pr-s3 font-bold">Cliente</th>
+                  <th className="pb-s2 pr-s3 font-bold">Data</th>
+                  <th className="pb-s2 pr-s3 text-right font-bold">Totale</th>
+                  <th className="pb-s2 pr-s3 font-bold">Stato</th>
+                  <th className="pb-s2 font-bold">Pagamento</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentOrders.map((o) => (
+                  <tr key={o.id} className="border-t border-border">
+                    <td className="num py-s3 pr-s3 font-semibold text-ink">
+                      {o.number}
+                    </td>
+                    <td className="py-s3 pr-s3 text-ink-2">
+                      {customerById(o.customerId)?.name ?? "—"}
+                    </td>
+                    <td className="num py-s3 pr-s3 text-ink-3">{formatDate(o.date)}</td>
+                    <td className="num py-s3 pr-s3 text-right font-semibold text-ink">
+                      {formatEuro(o.totalEur)}
+                    </td>
+                    <td className="py-s3 pr-s3">
+                      <Badge tone={ORDER_STATUS_TONE[o.status]}>{cap(o.status)}</Badge>
+                    </td>
+                    <td className="py-s3">
+                      <Badge tone={PAYMENT_TONE[o.paymentStatus]}>
+                        {PAYMENT_LABEL[o.paymentStatus]}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+      </div>
+
+      {/* ---- PANELS: row 2 ----------------------------------------------- */}
+      <div className="mt-s5 grid gap-s5 lg:grid-cols-3">
+        {/* Top vini */}
+        <Panel title="Vini più venduti" caption="Bottiglie negli ultimi mesi">
+          <ul className="space-y-s4">
+            {topWines.map((t) => (
+              <li key={t.wine.id}>
+                <div className="flex items-baseline justify-between gap-s3">
+                  <span className="truncate text-[14px] font-semibold text-ink">
+                    {t.wine.name}
+                  </span>
+                  <span className="num flex-none text-[13px] text-ink-2">
+                    {formatNumber(t.bottles)} bott.
+                  </span>
+                </div>
+                {/* Proportional bar — accent, low emphasis. */}
+                <div className="mt-s2 h-[6px] w-full overflow-hidden rounded-pill bg-surface-2">
+                  <div
+                    className="h-full rounded-pill bg-accent"
+                    style={{ width: `${(t.bottles / maxWineBottles) * 100}%` }}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+
+        {/* Top clienti */}
+        <Panel title="Migliori clienti" caption="Per fatturato">
+          <ul className="divide-y divide-border">
+            {topCustomers.map((c) => (
+              <li key={c.id} className="flex items-center justify-between gap-s3 py-s3 first:pt-0 last:pb-0">
+                <div className="min-w-0">
+                  <p className="truncate text-[14px] font-semibold text-ink">{c.name}</p>
+                  <p className="text-[13px] text-ink-3">
+                    {cap(c.channel)} · {c.city}
+                  </p>
+                </div>
+                <span className="num flex-none text-[14px] font-semibold text-ink">
+                  {formatEuroCompact(c.revenueEur)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+
+        {/* Snapshot AR */}
+        <Panel
+          title="Crediti"
+          caption="Situazione incassi"
+          action={
+            <Link to="/fatture">
+              <Button variant="ghost" size="sm">
+                Fatture
+              </Button>
+            </Link>
+          }
+        >
+          <div className="space-y-s4">
+            <div>
+              <p className="text-[13px] text-ink-2">Scaduto</p>
+              <p className="num mt-[2px] text-[26px] font-bold leading-none text-danger">
+                {formatEuroCompact(ar.scadutoEur)}
+              </p>
+              <p className="mt-s2">
+                <Badge tone="err">{ar.scadutaCount} fattura scaduta</Badge>
+              </p>
+            </div>
+            <div className="flex items-center justify-between border-t border-border pt-s3">
+              <span className="text-[13px] text-ink-2">Da pagare (a scadere)</span>
+              <span className="num text-[14px] font-semibold text-ink">
+                {formatEuro(ar.daPagareEur)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[13px] text-ink-2">Totale da incassare</span>
+              <span className="num text-[14px] font-semibold text-ink">
+                {formatEuro(ar.totalEur)}
+              </span>
+            </div>
+          </div>
+        </Panel>
+      </div>
+
+      {/* ---- ESTATE HERO IMAGE ------------------------------------------- */}
+      <div className="mt-s5">
+        <EstateHero />
+      </div>
     </>
   );
 }

@@ -19,6 +19,7 @@ import {
   getRecentOrders,
   getTopWines,
   getTopCustomers,
+  getScadutaInvoices,
   customerById,
 } from "@/fixtures";
 import { formatEuro, formatEuroCompact, formatNumber, formatDate } from "@/lib/format";
@@ -66,6 +67,11 @@ export function Dashboard() {
   const recentOrders = getRecentOrders(6);
   const topWines = getTopWines(4);
   const topCustomers = getTopCustomers(5);
+
+  // Tap target for the AR/scaduto snapshot: the single overdue invoice detail
+  // if there's exactly one, otherwise the Fatture list filtered by the user.
+  const scaduta = getScadutaInvoices();
+  const scadutoHref = scaduta.length === 1 ? `/fatture/${scaduta[0].id}` : "/fatture";
 
   // Split insights: the hero (first) and the quieter remainder.
   const [heroInsight, ...quietInsights] = INSIGHTS;
@@ -284,7 +290,12 @@ export function Dashboard() {
           }
         >
           <div className="space-y-s4">
-            <div>
+            {/* Tap the scaduto figure to open the overdue invoice — the
+                dashboard insight's payoff. Subtle: a hover wash, no chrome. */}
+            <Link
+              to={scadutoHref}
+              className="-mx-s2 block rounded-btn px-s2 py-s1 transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+            >
               <p className="text-[13px] text-ink-2">Scaduto</p>
               <p className="num mt-[2px] text-[26px] font-bold leading-none text-danger">
                 {formatEuroCompact(ar.scadutoEur)}
@@ -292,7 +303,7 @@ export function Dashboard() {
               <p className="mt-s2">
                 <Badge tone="err">{ar.scadutaCount} fattura scaduta</Badge>
               </p>
-            </div>
+            </Link>
             <div className="flex items-center justify-between border-t border-border pt-s3">
               <span className="text-[13px] text-ink-2">Da pagare (a scadere)</span>
               <span className="num text-[14px] font-semibold text-ink">

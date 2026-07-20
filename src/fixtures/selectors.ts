@@ -5,12 +5,12 @@
  * Nothing here mutates; it only reads the hardcoded arrays and returns view
  * models. "Now" is a fixed demo date so the story stays coherent offline.
  */
-import type { Wine, Vintage, Order, Customer } from "./types";
+import type { Wine, Vintage, Order, Customer, Invoice } from "./types";
 import { WINES, VINTAGES } from "./wines";
 import { CUSTOMERS } from "./customers";
 import { ORDERS } from "./orders";
 import { INVOICES } from "./invoices";
-import { monthNameIt } from "@/lib/format";
+import { monthNameIt, parseISODate } from "@/lib/format";
 
 /**
  * Fixed "today" for the whole demo (20/01/2026). Everything time-relative keys
@@ -26,6 +26,14 @@ export function wineById(id: string): Wine | undefined {
 
 export function customerById(id: string): Customer | undefined {
   return CUSTOMERS.find((c) => c.id === id);
+}
+
+export function orderById(id: string): Order | undefined {
+  return ORDERS.find((o) => o.id === id);
+}
+
+export function invoiceById(id: string): Invoice | undefined {
+  return INVOICES.find((inv) => inv.id === id);
 }
 
 /** The specific vintage row referenced by an order line. */
@@ -172,6 +180,39 @@ export function getArSnapshot(): {
     totalEur: scadutoEur + daPagareEur,
     scadutaCount,
   };
+}
+
+/** All invoices (raw list, for the Fatture screen). */
+export function getInvoices(): Invoice[] {
+  return INVOICES;
+}
+
+/** The overdue invoices (there is exactly one in the demo). */
+export function getScadutaInvoices(): Invoice[] {
+  return INVOICES.filter((inv) => inv.status === "scaduta");
+}
+
+/** Whole days a due date is past the demo "today" (0 if not yet due). */
+export function daysOverdue(dueDate: string): number {
+  const due = parseISODate(dueDate);
+  const ms = DEMO_TODAY.getTime() - due.getTime();
+  return Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24)));
+}
+
+/**
+ * AR ageing of the SCADUTO residuals, bucketed by days overdue.
+ * (Only overdue amounts age; da-pagare invoices are "non scaduto".)
+ */
+export function getArAgeing(): { b0_30: number; b31_60: number; b60plus: number } {
+  const buckets = { b0_30: 0, b31_60: 0, b60plus: 0 };
+  for (const inv of INVOICES) {
+    if (inv.status !== "scaduta") continue;
+    const d = daysOverdue(inv.dueDate);
+    if (d <= 30) buckets.b0_30 += inv.residualEur;
+    else if (d <= 60) buckets.b31_60 += inv.residualEur;
+    else buckets.b60plus += inv.residualEur;
+  }
+  return buckets;
 }
 
 // ---- capture rate ----------------------------------------------------------

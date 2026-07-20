@@ -74,13 +74,16 @@ export const INVOICES: Invoice[] = [
     customerId: "c-gallura",
     issueDate: "2025-12-03",
     dueDate: "2026-01-02", // scaduta rispetto a DEMO_TODAY (20/01/2026)
-    grossEur: 816,
-    discountEur: 0,
-    netEur: 816,
-    vatEur: 179.52,
-    totalEur: 995.52,
+    // Internally reconciled (gross − sconto = netto; netto·22% = IVA) and
+    // partially incassata: residuo 2.480 € < totale, which is exactly the
+    // dashboard's "scaduto" figure (getArSnapshot sums scaduta residuals).
+    grossEur: 2600,
+    discountEur: 100,
+    netEur: 2500,
+    vatEur: 550,
+    totalEur: 3050,
     status: "scaduta",
-    residualEur: 2480, // residuo storico complessivo del cliente
+    residualEur: 2480,
   },
   {
     id: "inv-2025-045",

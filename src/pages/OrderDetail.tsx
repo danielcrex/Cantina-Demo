@@ -3,7 +3,7 @@ import { Panel } from "@/components/ui/Panel";
 import { Badge } from "@/components/ui/Badge";
 import { InertButton } from "@/components/ui/InertButton";
 import { LifecycleStepper } from "@/components/orders/LifecycleStepper";
-import { ORDERS, customerById, wineById } from "@/fixtures";
+import { ORDERS, customerById, wineById, invoiceById } from "@/fixtures";
 import { formatEuro, formatNumber, formatDate } from "@/lib/format";
 import {
   ORDER_STATUS_TONE,
@@ -48,8 +48,9 @@ export function OrderDetail() {
   // Subtotale = sum of line totals; totale reconciles with the fixture.
   const subtotal = order.lines.reduce((sum, l) => sum + l.qtyBottles * l.unitPriceEur, 0);
 
-  // "Vedi fattura" only makes sense once the order is invoiced.
-  const isInvoiced = order.status === "fatturato" || order.status === "pagato";
+  // Resolve the originating invoice (present on fatturato/pagato orders that
+  // were billed). "Vedi fattura" links to it when it exists.
+  const invoice = order.invoiceId ? invoiceById(order.invoiceId) : undefined;
 
   return (
     <>
@@ -83,12 +84,14 @@ export function OrderDetail() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-s3">
-          {/* Deliberate placeholder: Invoices isn't built yet, so this is inert.
-              TODO: route to /fatture/:invoiceId once the invoice detail lands. */}
-          {isInvoiced && (
-            <InertButton variant="secondary" note="Il dettaglio fattura arriva a breve">
-              Vedi fattura
-            </InertButton>
+          {/* Real round-trip to the invoice detail (shown when the order was
+              billed — i.e. it carries an invoiceId that resolves). */}
+          {invoice && (
+            <Link to={`/fatture/${invoice.id}`}>
+              <span className="inline-flex min-h-[44px] items-center rounded-btn border border-border-2 bg-bg px-[18px] text-sm font-semibold text-ink shadow-sm transition-colors hover:bg-surface hover:border-ink-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">
+                Vedi fattura
+              </span>
+            </Link>
           )}
           <InertButton variant="secondary">Aggiorna stato</InertButton>
         </div>

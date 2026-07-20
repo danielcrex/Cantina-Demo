@@ -6,6 +6,8 @@ import { WineDetail } from "@/pages/WineDetail";
 import { Assistant } from "@/pages/Assistant";
 import { Ordini } from "@/pages/Ordini";
 import { OrderDetail } from "@/pages/OrderDetail";
+import { Fatture } from "@/pages/Fatture";
+import { InvoiceDetail } from "@/pages/InvoiceDetail";
 import { ComingSoon } from "@/pages/ComingSoon";
 import { Login } from "@/pages/Login";
 
@@ -46,7 +48,8 @@ export const router = createBrowserRouter([
       { path: "produzione", element: <ComingSoon /> },
 
       // Admin
-      { path: "fatture", element: <ComingSoon /> },
+      { path: "fatture", element: <Fatture /> },
+      { path: "fatture/:invoiceId", element: <InvoiceDetail /> },
       { path: "compliance", element: <ComingSoon /> },
 
       // Struttura

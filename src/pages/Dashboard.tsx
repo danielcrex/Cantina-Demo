@@ -1,0 +1,373 @@
+import { Link } from "react-router-dom";
+import { PageHeader } from "@/components/PageHeader";
+import { Panel } from "@/components/ui/Panel";
+import { Stat } from "@/components/ui/Stat";
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { HeroInsight, QuietInsight } from "@/components/dashboard/AiInsight";
+import { EstateHero } from "@/components/dashboard/EstateHero";
+import { RevenueChart } from "@/components/dashboard/RevenueChart";
+import { useAuth } from "@/auth/AuthContext";
+import {
+  DEMO_TODAY,
+  INSIGHTS,
+  getTotalStock,
+  getMonthRevenue,
+  currentMonthLabel,
+  getOpenOrdersCount,
+  getArSnapshot,
+  getCaptureRate,
+  getLowStock,
+  getRecentOrders,
+  getTopWines,
+  getTopCustomers,
+  getScadutaInvoices,
+  getProductionGapInsight,
+  customerById,
+} from "@/fixtures";
+import { formatEuro, formatEuroCompact, formatNumber, formatDate } from "@/lib/format";
+import {
+  ORDER_STATUS_TONE,
+  PAYMENT_TONE,
+  PAYMENT_LABEL,
+  cap,
+} from "@/components/orders/display";
+
+/**
+ * Dashboard — the pitch's hero screen.
+ * ---------------------------------------------------------------------------
+ * Everything here reads from the fixtures via selectors; nothing computes or
+ * mutates real state. Layout: KPI row -> AI-insight hero (+ two quieter ones)
+ * -> focused panels (alert scorte, ordini recenti, top vini, top clienti,
+ * snapshot AR, estate image).
+ */
+
+// -- small label / tone maps -------------------------------------------------
+// Order status / payment / channel maps live in components/orders/display.ts
+// (shared source of truth). Imported above.
+
+// Full Italian date for the header subtitle, capitalised.
+function longDateIt(d: Date): string {
+  const s = new Intl.DateTimeFormat("it-IT", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(d);
+  return cap(s);
+}
+
+export function Dashboard() {
+  const { user } = useAuth();
+
+  // Derived view models (read-only).
+  const stock = getTotalStock();
+  const monthRevenue = getMonthRevenue();
+  const openOrders = getOpenOrdersCount();
+  const ar = getArSnapshot();
+  const capture = getCaptureRate();
+  const lowStock = getLowStock();
+  const recentOrders = getRecentOrders(6);
+  const topWines = getTopWines(4);
+  const topCustomers = getTopCustomers(5);
+
+  // Tap target for the AR/scaduto snapshot: the single overdue invoice detail
+  // if there's exactly one, otherwise the Fatture list filtered by the user.
+  const scaduta = getScadutaInvoices();
+  const scadutoHref = scaduta.length === 1 ? `/fatture/${scaduta[0].id}` : "/fatture";
+
+  // Split insights: the hero (first) and the quieter remainder. The
+  // production-gap insight is DERIVED (runway + no 2024 Pentumas bottling run);
+  // when present it leads the quieter insights, ahead of the AR/seasonal notes.
+  const [heroInsight, ...restInsights] = INSIGHTS;
+  const productionGap = getProductionGapInsight();
+  const quietInsights = productionGap ? [productionGap, ...restInsights] : restInsights;
+
+  // Max bottles among top wines, for the proportional bars.
+  const maxWineBottles = Math.max(...topWines.map((t) => t.bottles), 1);
+
+  return (
+    <>
+      {/* Title + it-IT date (from the DEMO_TODAY anchor). "Nuovo ordine" moved
+          to the Ordini page. */}
+      <PageHeader
+        eyebrow="Cantina"
+        title={`Buongiorno, ${user.estate}`}
+        subtitle={longDateIt(DEMO_TODAY)}
+      />
+
+      {/* ---- ESTATE HERO (top of the dashboard) --------------------------- */}
+      <div className="mb-s6">
+        <EstateHero />
+      </div>
+
+      {/* ---- KPI ROW (each tile links to its page) -----------------------
+          Mobile-first: 1-up on small phones, 2-up on wide phones. The sm:/xl:
+          classes (>=640 / >=1280) are untouched, so lg+ stays 3-up then 5-up. */}
+      <div className="grid grid-cols-1 gap-s4 min-[480px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
+        {/* Giacenze -> the movement-style stock view. */}
+        <Stat
+          to="/giacenze"
+          label="Giacenze totali"
+          value={
+            <>
+              {formatNumber(stock.bottles)}{" "}
+              <span className="text-[16px] font-semibold text-ink-3">bott.</span>
+            </>
+          }
+          sub={`${formatNumber(stock.cases)} casse`}
+        />
+        {/* Ricavi del mese (label follows DEMO_TODAY's month) -> Ordini. */}
+        <Stat
+          to="/ordini"
+          label={`Ricavi di ${currentMonthLabel().toLowerCase()}`}
+          value={formatEuroCompact(monthRevenue)}
+          delta="+18% sul mese"
+          deltaTone="up"
+        />
+        {/* Ordini aperti -> Ordini. */}
+        <Stat
+          to="/ordini"
+          label="Ordini aperti"
+          value={formatNumber(openOrders)}
+          sub="in lavorazione"
+        />
+        {/* Scaduto/AR -> the overdue invoice (or /fatture) — same target as the
+            Crediti panel's AR tap. */}
+        <Stat
+          to={scadutoHref}
+          label="Scaduto"
+          value={formatEuroCompact(ar.scadutoEur)}
+          sub={`${formatEuroCompact(ar.totalEur)} da incassare`}
+          delta={`${ar.scadutaCount} fattura scaduta`}
+          deltaTone="down"
+        />
+        {/* Capture -> Assistant (the AI surface). */}
+        <Stat
+          to="/assistant"
+          label="Capture convenzionale"
+          value={`${capture.pct}%`}
+          delta={`+${capture.deltaPct} pt`}
+          deltaTone="up"
+        />
+      </div>
+
+      {/* ---- AI INSIGHTS -------------------------------------------------- */}
+      <div className="mt-s6 space-y-s4">
+        {/* "How it works" — a calm, honest framing of what Cantina does. It
+            describes the software's intelligence; it makes no new capability
+            claim beyond the insight card below. */}
+        <div className="max-w-[720px]">
+          <h2 className="font-display text-[20px] font-bold tracking-tight text-ink font-display-tight">
+            L&apos;intelligenza di Cantina, sempre al lavoro
+          </h2>
+          <p className="mt-s2 text-[15px] leading-relaxed text-ink-2">
+            Cantina osserva senza sosta ordini, produzione e giacenze — tutti i
+            tuoi dati, insieme. Riconosce andamenti e segnali facili da perdere
+            di vista e te li racconta in parole semplici, così puoi decidere
+            prima e muoverti per primo.
+          </p>
+        </div>
+        <HeroInsight insight={heroInsight} />
+        <div className="grid grid-cols-1 gap-s3 lg:grid-cols-2">
+          {quietInsights.map((ins) => (
+            <QuietInsight key={ins.id} insight={ins} />
+          ))}
+        </div>
+      </div>
+
+      {/* ---- REVENUE TREND ----------------------------------------------- */}
+      <Panel
+        title="Andamento ricavi"
+        caption="Totale ordini per mese"
+        className="mt-s6"
+      >
+        <RevenueChart />
+      </Panel>
+
+      {/* ---- PANELS: row 1 ----------------------------------------------- */}
+      <div className="mt-s6 grid grid-cols-1 gap-s5 lg:grid-cols-3">
+        {/* Alert scorte basse */}
+        <Panel
+          title="Scorte basse"
+          caption="Annate in commercio sotto soglia"
+          action={
+            <Link to="/giacenze">
+              <Button variant="ghost" size="sm">
+                Giacenze
+              </Button>
+            </Link>
+          }
+        >
+          <ul className="space-y-s3">
+            {lowStock.map(({ wine, vintage }) => {
+              // Deeper into the threshold -> danger, otherwise warning.
+              const ratio = vintage.stockBottles / vintage.lowStockThreshold;
+              const tone: BadgeTone = ratio < 0.7 ? "err" : "warn";
+              return (
+                <li
+                  key={vintage.id}
+                  className="flex items-center justify-between gap-s3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-[14px] font-semibold text-ink">
+                      {wine.name} <span className="num text-ink-3">{vintage.year}</span>
+                    </p>
+                    <p className="num text-[13px] text-ink-3">
+                      {formatNumber(vintage.stockBottles)} bottiglie ·{" "}
+                      {formatNumber(vintage.stockCases)} casse
+                    </p>
+                  </div>
+                  <Badge tone={tone}>
+                    {tone === "err" ? "Critico" : "Basso"}
+                  </Badge>
+                </li>
+              );
+            })}
+          </ul>
+        </Panel>
+
+        {/* Ordini recenti — spans two columns */}
+        <Panel
+          title="Ordini recenti"
+          className="lg:col-span-2"
+          action={
+            <Link to="/ordini">
+              <Button variant="ghost" size="sm">
+                Tutti gli ordini
+              </Button>
+            </Link>
+          }
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full text-[14px]">
+              <thead>
+                <tr className="text-left text-[11px] font-bold uppercase tracking-[0.06em] text-ink-3">
+                  <th className="pb-s2 pr-s3 font-bold">Ordine</th>
+                  <th className="pb-s2 pr-s3 font-bold">Cliente</th>
+                  <th className="pb-s2 pr-s3 font-bold">Data</th>
+                  <th className="pb-s2 pr-s3 text-right font-bold">Totale</th>
+                  <th className="pb-s2 pr-s3 font-bold">Stato</th>
+                  <th className="pb-s2 font-bold">Pagamento</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentOrders.map((o) => (
+                  <tr key={o.id} className="border-t border-border">
+                    <td className="num py-s3 pr-s3 font-semibold text-ink">
+                      {o.number}
+                    </td>
+                    <td className="py-s3 pr-s3 text-ink-2">
+                      {customerById(o.customerId)?.name ?? "—"}
+                    </td>
+                    <td className="num py-s3 pr-s3 text-ink-3">{formatDate(o.date)}</td>
+                    <td className="num py-s3 pr-s3 text-right font-semibold text-ink">
+                      {formatEuro(o.totalEur)}
+                    </td>
+                    <td className="py-s3 pr-s3">
+                      <Badge tone={ORDER_STATUS_TONE[o.status]}>{cap(o.status)}</Badge>
+                    </td>
+                    <td className="py-s3">
+                      <Badge tone={PAYMENT_TONE[o.paymentStatus]}>
+                        {PAYMENT_LABEL[o.paymentStatus]}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+      </div>
+
+      {/* ---- PANELS: row 2 ----------------------------------------------- */}
+      <div className="mt-s5 grid grid-cols-1 gap-s5 lg:grid-cols-3">
+        {/* Top vini */}
+        <Panel title="Vini più venduti" caption="Bottiglie negli ultimi mesi">
+          <ul className="space-y-s4">
+            {topWines.map((t) => (
+              <li key={t.wine.id}>
+                <div className="flex items-baseline justify-between gap-s3">
+                  <span className="truncate text-[14px] font-semibold text-ink">
+                    {t.wine.name}
+                  </span>
+                  <span className="num flex-none text-[13px] text-ink-2">
+                    {formatNumber(t.bottles)} bott.
+                  </span>
+                </div>
+                {/* Proportional bar — accent, low emphasis. */}
+                <div className="mt-s2 h-[6px] w-full overflow-hidden rounded-pill bg-surface-2">
+                  <div
+                    className="h-full rounded-pill bg-accent"
+                    style={{ width: `${(t.bottles / maxWineBottles) * 100}%` }}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+
+        {/* Top clienti */}
+        <Panel title="Migliori clienti" caption="Per fatturato">
+          <ul className="divide-y divide-border">
+            {topCustomers.map((c) => (
+              <li key={c.id} className="flex items-center justify-between gap-s3 py-s3 first:pt-0 last:pb-0">
+                <div className="min-w-0">
+                  <p className="truncate text-[14px] font-semibold text-ink">{c.name}</p>
+                  <p className="text-[13px] text-ink-3">
+                    {cap(c.channel)} · {c.city}
+                  </p>
+                </div>
+                <span className="num flex-none text-[14px] font-semibold text-ink">
+                  {formatEuroCompact(c.revenueEur)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+
+        {/* Snapshot AR */}
+        <Panel
+          title="Crediti"
+          caption="Situazione incassi"
+          action={
+            <Link to="/fatture">
+              <Button variant="ghost" size="sm">
+                Fatture
+              </Button>
+            </Link>
+          }
+        >
+          <div className="space-y-s4">
+            {/* Tap the scaduto figure to open the overdue invoice — the
+                dashboard insight's payoff. Subtle: a hover wash, no chrome. */}
+            <Link
+              to={scadutoHref}
+              className="-mx-s2 block rounded-btn px-s2 py-s1 transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+            >
+              <p className="text-[13px] text-ink-2">Scaduto</p>
+              <p className="num mt-[2px] text-[26px] font-bold leading-none text-danger">
+                {formatEuroCompact(ar.scadutoEur)}
+              </p>
+              <p className="mt-s2">
+                <Badge tone="err">{ar.scadutaCount} fattura scaduta</Badge>
+              </p>
+            </Link>
+            <div className="flex items-center justify-between border-t border-border pt-s3">
+              <span className="text-[13px] text-ink-2">Da pagare (a scadere)</span>
+              <span className="num text-[14px] font-semibold text-ink">
+                {formatEuro(ar.daPagareEur)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[13px] text-ink-2">Totale da incassare</span>
+              <span className="num text-[14px] font-semibold text-ink">
+                {formatEuro(ar.totalEur)}
+              </span>
+            </div>
+          </div>
+        </Panel>
+      </div>
+    </>
+  );
+}

@@ -36,6 +36,44 @@ export function invoiceById(id: string): Invoice | undefined {
   return INVOICES.find((inv) => inv.id === id);
 }
 
+/** All customers (raw list, for the Clienti screen). */
+export function getCustomers(): Customer[] {
+  return CUSTOMERS;
+}
+
+/** That customer's orders, most recent first. */
+export function ordersForCustomer(customerId: string): Order[] {
+  return ORDERS.filter((o) => o.customerId === customerId).sort((a, b) =>
+    b.date.localeCompare(a.date),
+  );
+}
+
+/** That customer's invoices, most recent first. */
+export function invoicesForCustomer(customerId: string): Invoice[] {
+  return INVOICES.filter((inv) => inv.customerId === customerId).sort((a, b) =>
+    b.issueDate.localeCompare(a.issueDate),
+  );
+}
+
+/**
+ * Outstanding for a customer, DERIVED from their invoices (residual of every
+ * unpaid invoice). We compute from invoices — not the customer's stored
+ * `outstandingEur` — so the figure always matches the Fatture screen.
+ */
+export function customerOutstanding(customerId: string): number {
+  return invoicesForCustomer(customerId)
+    .filter((inv) => inv.status !== "pagata")
+    .reduce((sum, inv) => sum + inv.residualEur, 0);
+}
+
+/** AR status for the list flag: overdue > pending > clear. */
+export function customerArStatus(customerId: string): "scaduto" | "in-attesa" | "none" {
+  const invs = invoicesForCustomer(customerId);
+  if (invs.some((i) => i.status === "scaduta")) return "scaduto";
+  if (invs.some((i) => i.status === "da-pagare")) return "in-attesa";
+  return "none";
+}
+
 /** The specific vintage row referenced by an order line. */
 export function vintageOf(wineId: string, year: number): Vintage | undefined {
   return VINTAGES.find((v) => v.wineId === wineId && v.year === year);

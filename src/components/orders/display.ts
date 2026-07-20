@@ -42,6 +42,15 @@ export function channelLabel(channel: Channel): string {
   return cap(channel);
 }
 
+// All channels, for filter controls.
+export const CHANNELS: Channel[] = [
+  "ristorante",
+  "enoteca",
+  "agriturismo",
+  "distributore",
+  "privato",
+];
+
 // The canonical lifecycle order for the stepper.
 export const ORDER_LIFECYCLE: Order["status"][] = [
   "bozza",

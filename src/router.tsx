@@ -8,6 +8,8 @@ import { Ordini } from "@/pages/Ordini";
 import { OrderDetail } from "@/pages/OrderDetail";
 import { Fatture } from "@/pages/Fatture";
 import { InvoiceDetail } from "@/pages/InvoiceDetail";
+import { Clienti } from "@/pages/Clienti";
+import { CustomerDetail } from "@/pages/CustomerDetail";
 import { ComingSoon } from "@/pages/ComingSoon";
 import { Login } from "@/pages/Login";
 
@@ -39,7 +41,8 @@ export const router = createBrowserRouter([
       { path: "capture", element: <Navigate to="/assistant" replace /> },
       { path: "ordini", element: <Ordini /> },
       { path: "ordini/:orderId", element: <OrderDetail /> },
-      { path: "clienti", element: <ComingSoon /> },
+      { path: "clienti", element: <Clienti /> },
+      { path: "clienti/:customerId", element: <CustomerDetail /> },
 
       // Cantina
       { path: "catalogo", element: <Catalogo /> },

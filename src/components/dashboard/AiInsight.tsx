@@ -72,7 +72,7 @@ export function HeroInsight({ insight }: { insight: Insight }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-s3">
             <span className="text-[12px] font-bold uppercase tracking-[0.1em] text-accent">
-              ARBISU · Assistente
+              Cantina · Assistente
             </span>
             <Badge tone="warn">Attenzione scorte</Badge>
           </div>

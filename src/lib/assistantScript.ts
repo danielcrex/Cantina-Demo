@@ -99,7 +99,7 @@ export const QUICK_PROMPTS: QuickPrompt[] = [
 
 /** Opening assistant greeting. */
 export const GREETING =
-  "Sono l'assistente di ARBISU Cantina. Posso rispondere sulle tue giacenze, " +
+  "Sono l'assistente di Cantina. Posso rispondere sulle tue giacenze, " +
   "vendite e clienti, oppure leggere un ordine che incolli qui. Da dove vuoi partire?";
 
 /**

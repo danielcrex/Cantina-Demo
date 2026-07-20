@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "ARBISU Cantina — static, backend-free pitch mockup for Monte Fenosu (Daniele's Touch design system).",
+  "description": "Cantina — static, backend-free pitch mockup for Monte Fenosu (Daniele's Touch design system).",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

@@ -27,7 +27,7 @@ export function ComingSoon() {
 
   return (
     <>
-      <PageHeader eyebrow={section ?? "ARBISU Cantina"} title={label} />
+      <PageHeader eyebrow={section ?? "Cantina"} title={label} />
 
       <Card
         flat
@@ -42,7 +42,7 @@ export function ComingSoon() {
           {label} sarà disponibile a breve
         </h2>
         <p className="max-w-[420px] text-[14px] leading-relaxed text-ink-2">
-          Questa sezione fa parte di ARBISU Cantina ma non è ancora inclusa in
+          Questa sezione fa parte di Cantina ma non è ancora inclusa in
           questa anteprima. La struttura è già predisposta.
         </p>
       </Card>

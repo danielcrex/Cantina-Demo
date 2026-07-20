@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
-import { Wordmark } from "@/components/Wordmark";
+import { CantinaWordmark } from "@/components/CantinaWordmark";
+import { FooterCredit } from "@/components/FooterCredit";
 import { AccountMenu } from "@/app/AccountMenu";
 import { NAV_GROUPS, type NavItem } from "@/app/nav";
 
@@ -7,10 +8,10 @@ import { NAV_GROUPS, type NavItem } from "@/app/nav";
  * Sidebar — fixed left rail on tablet.
  * ---------------------------------------------------------------------------
  * Structure top to bottom:
- *   - ARBISU wordmark + "Cantina" product line
+ *   - "Cantina" wordmark (the app name)
  *   - grouped navigation (section labels are NON-interactive headers)
  *   - account / logout menu
- *   - subtle "ARBISU" footer credit
+ *   - "Cantina è offerto da ARBISU" footer credit (the only ARBISU in-app)
  */
 
 // A single nav link. Active state uses accent-weak fill + accent text (the one
@@ -41,10 +42,8 @@ export function Sidebar() {
     <aside className="flex h-full w-[264px] flex-none flex-col border-r border-border bg-bg">
       {/* Brand block */}
       <div className="px-s5 pb-s5 pt-s6">
-        <Wordmark className="h-7 w-auto" />
-        <p className="mt-s3 text-[12px] font-semibold uppercase tracking-[0.16em] text-ink-3">
-          Cantina
-        </p>
+        {/* App name — "Cantina" in the display font. */}
+        <CantinaWordmark className="text-[24px]" />
       </div>
 
       {/* Navigation — scrolls independently if the list ever grows. */}
@@ -66,12 +65,10 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* Account menu + footer credit */}
+      {/* Account menu + footer credit (the only ARBISU in the app chrome). */}
       <div className="border-t border-border px-s3 pb-s4 pt-s4">
         <AccountMenu />
-        <p className="mt-s4 px-s3 text-center text-[11px] tracking-[0.14em] text-ink-3">
-          ARBISU
-        </p>
+        <FooterCredit className="mt-s4 w-full" />
       </div>
     </aside>
   );

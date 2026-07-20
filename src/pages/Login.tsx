@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Wordmark } from "@/components/Wordmark";
+import { CantinaWordmark } from "@/components/CantinaWordmark";
+import { FooterCredit } from "@/components/FooterCredit";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/auth/AuthContext";
 
@@ -35,10 +36,7 @@ export function Login() {
       <div className="w-full max-w-[380px]">
         {/* Brand */}
         <div className="mb-s7 flex flex-col items-center text-center">
-          <Wordmark className="h-8 w-auto" />
-          <p className="mt-s3 text-[12px] font-semibold uppercase tracking-[0.16em] text-ink-3">
-            Cantina
-          </p>
+          <CantinaWordmark className="text-[30px]" />
         </div>
 
         <form
@@ -97,9 +95,8 @@ export function Login() {
           </Button>
         </form>
 
-        <p className="mt-s5 text-center text-[12px] tracking-[0.14em] text-ink-3">
-          ARBISU
-        </p>
+        {/* Credit (the only ARBISU on the login prop). */}
+        <FooterCredit className="mt-s5 w-full" />
       </div>
     </div>
   );

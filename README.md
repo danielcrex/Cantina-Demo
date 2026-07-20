@@ -1,10 +1,10 @@
-# ARBISU Cantina — Monte Fenosu (demo)
+# Cantina — Monte Fenosu (demo)
 
 A **static, backend-free** pitch mockup of an AI-first inventory / order app for the
-Sardinian winery **Azienda Vitivinicola Monte Fenosu**, presented **as ARBISU**
-("ARBISU Cantina"). Built to run **fully offline** on a landscape tablet — no backend,
-no database, no API, no auth server, no runtime network calls. All data is (or will be)
-hardcoded TypeScript fixtures.
+Sardinian winery **Azienda Vitivinicola Monte Fenosu**. The product is **Cantina**;
+ARBISU appears only as a footer credit ("Cantina è offerto da ARBISU"). Built to run
+**fully offline** on a landscape tablet — no backend, no database, no API, no auth
+server, no runtime network calls. All data is hardcoded TypeScript fixtures.
 
 Design system: **Daniele's Touch** (pure white, hairline borders, soft shadows, one
 Cobalt accent, Figtree). Italian-language UI.
@@ -50,11 +50,12 @@ npm run preview  # serve the production build locally
 `/login`, `/catalogo`) resolve on Cloudflare Pages' static SPA host. Do **not** add any
 server or edge functions — this is a pure static deploy.
 
-## Brand & estate assets (optional drop-ins)
+## Brand & estate assets
 
-- `public/brand/arbisu-black.png` — sidebar / login wordmark. If absent, the shell falls
-  back to a clean text "ARBISU" in the display font.
-- `public/estate/` — estate hero imagery for the Dashboard (used in a later step).
+- `public/brand/arbisu-black.png` — ARBISU logo used only in the footer credit. If absent,
+  the credit falls back to a clean text "ARBISU" in the display font.
+- `public/estate/monte-fenosu.jpg` — estate hero photo on the Dashboard. If absent, the
+  panel falls back to a neutral vineyard-toned gradient. No image is fetched remotely.
 
 ## Project layout
 
@@ -62,7 +63,8 @@ server or edge functions — this is a pure static deploy.
 public/
   _redirects            Cloudflare Pages SPA rewrite
   fonts/                self-hosted Figtree (woff2)
-  brand/                ARBISU wordmark drop-in
+  brand/                ARBISU credit logo
+  estate/               estate hero photo
 src/
   index.css             @font-face + design tokens (CSS vars) + base styles
   main.tsx              entry (AuthProvider + RouterProvider)

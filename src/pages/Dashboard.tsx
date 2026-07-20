@@ -82,7 +82,7 @@ export function Dashboard() {
   return (
     <>
       <PageHeader
-        eyebrow="ARBISU Cantina"
+        eyebrow="Cantina"
         title={`Buongiorno, ${user.estate}`}
         subtitle={longDateIt(DEMO_TODAY)}
         actions={<Button variant="primary">Nuovo ordine</Button>}
@@ -128,6 +128,20 @@ export function Dashboard() {
 
       {/* ---- AI INSIGHTS -------------------------------------------------- */}
       <div className="mt-s6 space-y-s4">
+        {/* "How it works" — a calm, honest framing of what Cantina does. It
+            describes the software's intelligence; it makes no new capability
+            claim beyond the insight card below. */}
+        <div className="max-w-[720px]">
+          <h2 className="font-display text-[20px] font-bold tracking-tight text-ink font-display-tight">
+            L&apos;intelligenza di Cantina, sempre al lavoro
+          </h2>
+          <p className="mt-s2 text-[15px] leading-relaxed text-ink-2">
+            Cantina osserva senza sosta ordini, produzione e giacenze — tutti i
+            tuoi dati, insieme. Riconosce andamenti e segnali facili da perdere
+            di vista e te li racconta in parole semplici, così puoi decidere
+            prima e muoverti per primo.
+          </p>
+        </div>
         <HeroInsight insight={heroInsight} />
         <div className="grid gap-s3 lg:grid-cols-2">
           {quietInsights.map((ins) => (

@@ -12,7 +12,7 @@ export function EstateHero() {
   const [imgFailed, setImgFailed] = useState(false);
 
   return (
-    <div className="relative h-full min-h-[220px] overflow-hidden rounded-card border border-border shadow-sm">
+    <div className="relative h-[200px] overflow-hidden rounded-card border border-border shadow-sm md:h-[240px]">
       {/* Neutral placeholder — a soft vineyard-toned gradient. Always present,
           so the block looks intentional even with no photo. */}
       <div

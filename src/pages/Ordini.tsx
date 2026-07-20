@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { InertButton } from "@/components/ui/InertButton";
 import {
   ORDERS,
   customerById,
@@ -89,6 +90,8 @@ export function Ordini() {
         eyebrow="Vendite"
         title="Ordini"
         subtitle="Tutti gli ordini, con stato di lavorazione e di pagamento."
+        // "Nuovo ordine" relocated here from the dashboard; visual-only.
+        actions={<InertButton variant="primary">Nuovo ordine</InertButton>}
       />
 
       {/* Controls: search + filters + sort. Restrained, on-theme. */}

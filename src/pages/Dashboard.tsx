@@ -6,12 +6,14 @@ import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { HeroInsight, QuietInsight } from "@/components/dashboard/AiInsight";
 import { EstateHero } from "@/components/dashboard/EstateHero";
+import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { useAuth } from "@/auth/AuthContext";
 import {
   DEMO_TODAY,
   INSIGHTS,
   getTotalStock,
   getMonthRevenue,
+  currentMonthLabel,
   getOpenOrdersCount,
   getArSnapshot,
   getCaptureRate,
@@ -81,16 +83,24 @@ export function Dashboard() {
 
   return (
     <>
+      {/* Title + it-IT date (from the DEMO_TODAY anchor). "Nuovo ordine" moved
+          to the Ordini page. */}
       <PageHeader
         eyebrow="Cantina"
         title={`Buongiorno, ${user.estate}`}
         subtitle={longDateIt(DEMO_TODAY)}
-        actions={<Button variant="primary">Nuovo ordine</Button>}
       />
 
-      {/* ---- KPI ROW ------------------------------------------------------ */}
+      {/* ---- ESTATE HERO (top of the dashboard) --------------------------- */}
+      <div className="mb-s6">
+        <EstateHero />
+      </div>
+
+      {/* ---- KPI ROW (each tile links to its page) ----------------------- */}
       <div className="grid grid-cols-2 gap-s4 sm:grid-cols-3 xl:grid-cols-5">
+        {/* Giacenze -> Catalogo (where stock lives per wine). */}
         <Stat
+          to="/catalogo"
           label="Giacenze totali"
           value={
             <>
@@ -100,25 +110,34 @@ export function Dashboard() {
           }
           sub={`${formatNumber(stock.cases)} casse`}
         />
+        {/* Ricavi del mese (label follows DEMO_TODAY's month) -> Ordini. */}
         <Stat
-          label="Ricavi di gennaio"
+          to="/ordini"
+          label={`Ricavi di ${currentMonthLabel().toLowerCase()}`}
           value={formatEuroCompact(monthRevenue)}
           delta="+18% sul mese"
           deltaTone="up"
         />
+        {/* Ordini aperti -> Ordini. */}
         <Stat
+          to="/ordini"
           label="Ordini aperti"
           value={formatNumber(openOrders)}
           sub="in lavorazione"
         />
+        {/* Scaduto/AR -> the overdue invoice (or /fatture) — same target as the
+            Crediti panel's AR tap. */}
         <Stat
+          to={scadutoHref}
           label="Scaduto"
           value={formatEuroCompact(ar.scadutoEur)}
           sub={`${formatEuroCompact(ar.totalEur)} da incassare`}
           delta={`${ar.scadutaCount} fattura scaduta`}
           deltaTone="down"
         />
+        {/* Capture -> Assistant (the AI surface). */}
         <Stat
+          to="/assistant"
           label="Capture convenzionale"
           value={`${capture.pct}%`}
           delta={`+${capture.deltaPct} pt`}
@@ -149,6 +168,15 @@ export function Dashboard() {
           ))}
         </div>
       </div>
+
+      {/* ---- REVENUE TREND ----------------------------------------------- */}
+      <Panel
+        title="Andamento ricavi"
+        caption="Totale ordini per mese"
+        className="mt-s6"
+      >
+        <RevenueChart />
+      </Panel>
 
       {/* ---- PANELS: row 1 ----------------------------------------------- */}
       <div className="mt-s6 grid gap-s5 lg:grid-cols-3">
@@ -332,11 +360,6 @@ export function Dashboard() {
             </div>
           </div>
         </Panel>
-      </div>
-
-      {/* ---- ESTATE HERO IMAGE ------------------------------------------- */}
-      <div className="mt-s5">
-        <EstateHero />
       </div>
     </>
   );

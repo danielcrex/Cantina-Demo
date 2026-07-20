@@ -11,12 +11,10 @@ import { CUSTOMERS } from "./customers";
 import { ORDERS } from "./orders";
 import { INVOICES } from "./invoices";
 import { monthNameIt, parseISODate } from "@/lib/format";
-
-/**
- * Fixed "today" for the whole demo (20/01/2026). Everything time-relative keys
- * off this so the app reads identically on any machine, on any real date.
- */
-export const DEMO_TODAY = new Date(2026, 0, 20);
+// Single "today" anchor lives in one place (src/lib/demoDate.ts); re-exported
+// here so existing `@/fixtures` imports keep working.
+import { DEMO_TODAY } from "@/lib/demoDate";
+export { DEMO_TODAY };
 
 // ---- lookup helpers --------------------------------------------------------
 
@@ -161,11 +159,43 @@ export function getOpenOrdersCount(): number {
 
 /** Revenue booked in the current demo month (gennaio 2026). */
 export function getMonthRevenue(): number {
-  const prefix = "2026-01";
+  // Follows DEMO_TODAY's month (YYYY-MM), so the KPI stays consistent with the
+  // "today" anchor rather than a hardcoded month.
+  const prefix = `${DEMO_TODAY.getFullYear()}-${String(DEMO_TODAY.getMonth() + 1).padStart(2, "0")}`;
   return ORDERS.filter((o) => o.date.startsWith(prefix)).reduce(
     (sum, o) => sum + o.totalEur,
     0,
   );
+}
+
+/** Italian month name of DEMO_TODAY, capitalised (e.g. "Gennaio") — for the
+ *  "Ricavi di <mese>" KPI label. */
+export function currentMonthLabel(): string {
+  const m = monthNameIt(DEMO_TODAY);
+  return m.charAt(0).toUpperCase() + m.slice(1);
+}
+
+/**
+ * Revenue aggregated by calendar month, ascending — for the dashboard trend
+ * chart. Reads only the orders fixture. Each point carries a short it-IT label
+ * ("ago 25", "gen 26") that disambiguates across years.
+ */
+export function monthlyRevenue(): Array<{ key: string; label: string; total: number }> {
+  const map = new Map<string, number>();
+  for (const o of ORDERS) {
+    const key = o.date.slice(0, 7); // YYYY-MM
+    map.set(key, (map.get(key) ?? 0) + o.totalEur);
+  }
+  return [...map.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([key, total]) => {
+      const [y, m] = key.split("-").map(Number);
+      const d = new Date(y, m - 1, 1);
+      const mon = new Intl.DateTimeFormat("it-IT", { month: "short" })
+        .format(d)
+        .replace(".", "");
+      return { key, label: `${mon} ${String(y).slice(2)}`, total };
+    });
 }
 
 // ---- top vini / clienti ----------------------------------------------------
@@ -268,10 +298,13 @@ export function getCaptureRate(): { pct: number; deltaPct: number } {
 /**
  * Compute the Pentumas 2023 run-out from REAL fixture data so the hero insight
  * is true, not asserted:
- *   perMonth  = Pentumas 2023 bottles sold in the last 90 days / 3
+ *   perMonth   = Pentumas 2023 bottles sold in the most recent 90 days of orders
  *   monthsLeft = current stock / perMonth
- *   runoutDate = DEMO_TODAY + monthsLeft
- * With 168 in giacenza and ~84/mese, that lands in MARZO.
+ *   runoutDate = DEMO_TODAY + monthsLeft   (always projected FORWARD from today)
+ * With 168 in giacenza and ~100/mese, that lands ~2 months out (marzo at the
+ * pinned anchor). The velocity window is anchored to the most recent order
+ * DATA — not to DEMO_TODAY — so the run-out is always in the future and never
+ * reads as past/this-month, whatever "today" is pinned to.
  */
 export function getPentumasRunway(): {
   stockBottles: number;
@@ -282,14 +315,20 @@ export function getPentumasRunway(): {
 } {
   const vintage = vintageOf("w-pentumas", 2023)!;
 
-  // 90-day window ending at the demo "today".
-  const windowStart = new Date(DEMO_TODAY);
+  // Anchor the 90-day velocity window to the most recent order in the fixtures
+  // (capped at DEMO_TODAY), so velocity is measured where the data actually is.
+  const latestOrderMs = Math.min(
+    DEMO_TODAY.getTime(),
+    Math.max(...ORDERS.map((o) => new Date(o.date).getTime())),
+  );
+  const windowEnd = new Date(latestOrderMs);
+  const windowStart = new Date(windowEnd);
   windowStart.setDate(windowStart.getDate() - 90);
 
   let bottles90d = 0;
   for (const o of ORDERS) {
     const d = new Date(o.date);
-    if (d >= windowStart && d <= DEMO_TODAY) {
+    if (d >= windowStart && d <= windowEnd) {
       for (const l of o.lines) {
         if (l.wineId === "w-pentumas" && l.vintageYear === 2023) {
           bottles90d += l.qtyBottles;
@@ -298,9 +337,11 @@ export function getPentumasRunway(): {
     }
   }
 
-  const perMonth = Math.round(bottles90d / 3);
+  // Guard against a zero-velocity window (keeps monthsLeft finite).
+  const perMonth = Math.max(1, Math.round(bottles90d / 3));
   const monthsLeft = vintage.stockBottles / perMonth;
 
+  // Project forward from DEMO_TODAY so the run-out is always ahead of "today".
   const runoutDate = new Date(DEMO_TODAY);
   runoutDate.setDate(runoutDate.getDate() + Math.round(monthsLeft * 30));
 

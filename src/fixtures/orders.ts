@@ -269,6 +269,54 @@ const ORDER_SPECS: OrderSpec[] = [
     paymentStatus: "pagato",
     discountEur: 600,
   },
+
+  // ---- Storico aprile–luglio 2025 ---------------------------------------
+  // Added so the monthly-revenue trend has a fuller left side and reads as a
+  // gentle build-up into the recent months. All are old, fully paid, and well
+  // outside the 90-day runway window, so they DON'T affect the Pentumas
+  // velocity, the current-month KPI, open-orders, recent-orders, AR, or stock —
+  // only getTopWines (slightly) and the revenue graph.
+  {
+    id: "o-2025-024",
+    number: "2025-024",
+    customerId: "c-marina",
+    channel: "ristorante",
+    date: "2025-07-21",
+    lines: [["w-ardosu", 2021, 48], ["w-cagnulari", 2022, 36], ["w-tudurighe", 2024, 60]],
+    status: "pagato",
+    paymentStatus: "pagato",
+  },
+  {
+    id: "o-2025-019",
+    number: "2025-019",
+    customerId: "c-weinhaus",
+    channel: "distributore",
+    date: "2025-06-16",
+    lines: [["w-tudurighe", 2024, 180], ["w-ardosu", 2021, 60]],
+    status: "pagato",
+    paymentStatus: "pagato",
+    discountEur: 200,
+  },
+  {
+    id: "o-2025-014",
+    number: "2025-014",
+    customerId: "c-portocervo",
+    channel: "enoteca",
+    date: "2025-05-20",
+    lines: [["w-tudurighe", 2024, 150], ["w-turricula", 2021, 30]],
+    status: "pagato",
+    paymentStatus: "pagato",
+  },
+  {
+    id: "o-2025-008",
+    number: "2025-008",
+    customerId: "c-sunuraghe",
+    channel: "enoteca",
+    date: "2025-04-14",
+    lines: [["w-tudurighe", 2024, 96], ["w-ardosu", 2021, 36]],
+    status: "pagato",
+    paymentStatus: "pagato",
+  },
 ];
 
 export const ORDERS: Order[] = ORDER_SPECS.map(buildOrder);

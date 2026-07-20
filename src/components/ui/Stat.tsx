@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 
 /**
  * Stat — a KPI tile.
@@ -6,6 +7,9 @@ import type { ReactNode } from "react";
  * Label above, big tabular numeral, optional sub-line, optional delta below in
  * a semantic colour. The numeral uses `.num` (tabular figures) so a row of
  * tiles aligns cleanly. Depth from the Card-like white surface + hairline.
+ *
+ * Pass `to` to make the WHOLE tile a tap target that navigates there (on-theme
+ * hover: lift + border). Without `to` it renders as a plain tile.
  */
 
 export interface StatProps {
@@ -18,6 +22,8 @@ export interface StatProps {
   delta?: string;
   /** Semantic tone of the delta. 'up' green, 'down' red, 'muted' grey. */
   deltaTone?: "up" | "down" | "muted";
+  /** If set, the tile becomes a link to this route. */
+  to?: string;
 }
 
 const deltaColor: Record<NonNullable<StatProps["deltaTone"]>, string> = {
@@ -26,9 +32,10 @@ const deltaColor: Record<NonNullable<StatProps["deltaTone"]>, string> = {
   muted: "text-ink-3",
 };
 
-export function Stat({ label, value, sub, delta, deltaTone = "muted" }: StatProps) {
-  return (
-    <div className="rounded-card border border-border bg-bg p-s5 shadow-sm">
+export function Stat({ label, value, sub, delta, deltaTone = "muted", to }: StatProps) {
+  // Inner content is shared between the plain and linked variants.
+  const inner = (
+    <>
       <div className="text-[13px] font-medium text-ink-2">{label}</div>
       <div className="num mt-s2 text-[30px] font-bold leading-tight tracking-tight text-ink">
         {value}
@@ -39,6 +46,21 @@ export function Stat({ label, value, sub, delta, deltaTone = "muted" }: StatProp
           {delta}
         </div>
       )}
-    </div>
+    </>
   );
+
+  const base = "block rounded-card border border-border bg-bg p-s5 shadow-sm";
+
+  if (to) {
+    return (
+      <Link
+        to={to}
+        className={`${base} h-full transition-[box-shadow,border-color] hover:border-ink-3 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2`}
+      >
+        {inner}
+      </Link>
+    );
+  }
+
+  return <div className={base}>{inner}</div>;
 }

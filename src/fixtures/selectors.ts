@@ -46,6 +46,48 @@ export function getTotalStock(): { bottles: number; cases: number } {
   );
 }
 
+/** All vintages of a wine, newest year first. */
+export function vintagesOfWine(wineId: string): Vintage[] {
+  return VINTAGES.filter((v) => v.wineId === wineId).sort((a, b) => b.year - a.year);
+}
+
+/** Available (sellable) stock for a wine: sums bottles + cases over its
+ *  in-commercio vintages only. */
+export function getWineStock(wineId: string): { bottles: number; cases: number } {
+  return vintagesOfWine(wineId)
+    .filter((v) => v.status === "in-commercio")
+    .reduce(
+      (acc, v) => ({
+        bottles: acc.bottles + v.stockBottles,
+        cases: acc.cases + v.stockCases,
+      }),
+      { bottles: 0, cases: 0 },
+    );
+}
+
+/**
+ * Wine-level stock status, using the SAME threshold logic as getLowStock so the
+ * catalogo flags stay consistent with the dashboard:
+ *   - no sellable stock            -> 'esaurito'
+ *   - worst in-commercio ratio <0.7 -> 'critico'   (Pentumas 168/300 = 0.56)
+ *   - worst in-commercio ratio <=1  -> 'basso'      (Turricula 210/250 = 0.84)
+ *   - otherwise                    -> 'disponibile'
+ */
+export type WineStockStatus = "esaurito" | "critico" | "basso" | "disponibile";
+
+export function getWineStockStatus(wineId: string): WineStockStatus {
+  const inCommercio = vintagesOfWine(wineId).filter((v) => v.status === "in-commercio");
+  if (inCommercio.length === 0 || inCommercio.every((v) => v.stockBottles === 0)) {
+    return "esaurito";
+  }
+  const worstRatio = Math.min(
+    ...inCommercio.map((v) => v.stockBottles / v.lowStockThreshold),
+  );
+  if (worstRatio < 0.7) return "critico";
+  if (worstRatio <= 1) return "basso";
+  return "disponibile";
+}
+
 /** In-commercio vintages at/under their low-stock threshold, worst first. */
 export function getLowStock(): Array<{ wine: Wine; vintage: Vintage }> {
   return VINTAGES.filter(

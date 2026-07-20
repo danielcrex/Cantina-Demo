@@ -1,6 +1,8 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppShell } from "@/app/AppShell";
 import { Dashboard } from "@/pages/Dashboard";
+import { Catalogo } from "@/pages/Catalogo";
+import { WineDetail } from "@/pages/WineDetail";
 import { ComingSoon } from "@/pages/ComingSoon";
 import { Login } from "@/pages/Login";
 
@@ -34,7 +36,8 @@ export const router = createBrowserRouter([
       { path: "clienti", element: <ComingSoon /> },
 
       // Cantina
-      { path: "catalogo", element: <ComingSoon /> },
+      { path: "catalogo", element: <Catalogo /> },
+      { path: "catalogo/:wineId", element: <WineDetail /> },
       { path: "inventario", element: <ComingSoon /> },
       { path: "produzione", element: <ComingSoon /> },
 

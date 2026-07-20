@@ -20,9 +20,14 @@ import {
   getTopWines,
   getTopCustomers,
   customerById,
-  type Order,
 } from "@/fixtures";
 import { formatEuro, formatEuroCompact, formatNumber, formatDate } from "@/lib/format";
+import {
+  ORDER_STATUS_TONE,
+  PAYMENT_TONE,
+  PAYMENT_LABEL,
+  cap,
+} from "@/components/orders/display";
 
 /**
  * Dashboard — the pitch's hero screen.
@@ -34,35 +39,8 @@ import { formatEuro, formatEuroCompact, formatNumber, formatDate } from "@/lib/f
  */
 
 // -- small label / tone maps -------------------------------------------------
-
-// Order lifecycle status -> badge tone.
-const ORDER_STATUS_TONE: Record<Order["status"], BadgeTone> = {
-  bozza: "neutral",
-  confermato: "neutral",
-  preparato: "accent",
-  spedito: "accent",
-  fatturato: "accent",
-  pagato: "ok",
-};
-
-// Payment status -> badge tone.
-const PAYMENT_TONE: Record<Order["paymentStatus"], BadgeTone> = {
-  pagato: "ok",
-  "in-attesa": "warn",
-  scaduto: "err",
-};
-
-// Human label for a payment status.
-const PAYMENT_LABEL: Record<Order["paymentStatus"], string> = {
-  pagato: "Pagato",
-  "in-attesa": "In attesa",
-  scaduto: "Scaduto",
-};
-
-// Capitalise the first letter (channel / status words are already Italian).
-function cap(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
+// Order status / payment / channel maps live in components/orders/display.ts
+// (shared source of truth). Imported above.
 
 // Full Italian date for the header subtitle, capitalised.
 function longDateIt(d: Date): string {

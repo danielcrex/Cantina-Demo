@@ -4,6 +4,8 @@ import { Dashboard } from "@/pages/Dashboard";
 import { Catalogo } from "@/pages/Catalogo";
 import { WineDetail } from "@/pages/WineDetail";
 import { Assistant } from "@/pages/Assistant";
+import { Ordini } from "@/pages/Ordini";
+import { OrderDetail } from "@/pages/OrderDetail";
 import { ComingSoon } from "@/pages/ComingSoon";
 import { Login } from "@/pages/Login";
 
@@ -33,7 +35,8 @@ export const router = createBrowserRouter([
       // Vendite — Assistant is the combined AI page; /capture redirects to it.
       { path: "assistant", element: <Assistant /> },
       { path: "capture", element: <Navigate to="/assistant" replace /> },
-      { path: "ordini", element: <ComingSoon /> },
+      { path: "ordini", element: <Ordini /> },
+      { path: "ordini/:orderId", element: <OrderDetail /> },
       { path: "clienti", element: <ComingSoon /> },
 
       // Cantina

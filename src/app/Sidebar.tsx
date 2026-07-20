@@ -42,8 +42,8 @@ export function Sidebar() {
     <aside className="flex h-full w-[264px] flex-none flex-col border-r border-border bg-bg">
       {/* Brand block */}
       <div className="px-s5 pb-s5 pt-s6">
-        {/* App name — "Cantina" in the display font. */}
-        <CantinaWordmark className="text-[24px]" />
+        {/* App brand — the Cantina logo (kept modest so it doesn't dominate). */}
+        <CantinaWordmark className="h-10 w-auto" />
       </div>
 
       {/* Navigation — scrolls independently if the list ever grows. */}

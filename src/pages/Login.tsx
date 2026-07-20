@@ -36,7 +36,7 @@ export function Login() {
       <div className="w-full max-w-[380px]">
         {/* Brand */}
         <div className="mb-s7 flex flex-col items-center text-center">
-          <CantinaWordmark className="text-[30px]" />
+          <CantinaWordmark className="h-16 w-auto" />
         </div>
 
         <form

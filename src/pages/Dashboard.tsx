@@ -22,6 +22,7 @@ import {
   getTopWines,
   getTopCustomers,
   getScadutaInvoices,
+  getProductionGapInsight,
   customerById,
 } from "@/fixtures";
 import { formatEuro, formatEuroCompact, formatNumber, formatDate } from "@/lib/format";
@@ -75,8 +76,12 @@ export function Dashboard() {
   const scaduta = getScadutaInvoices();
   const scadutoHref = scaduta.length === 1 ? `/fatture/${scaduta[0].id}` : "/fatture";
 
-  // Split insights: the hero (first) and the quieter remainder.
-  const [heroInsight, ...quietInsights] = INSIGHTS;
+  // Split insights: the hero (first) and the quieter remainder. The
+  // production-gap insight is DERIVED (runway + no 2024 Pentumas bottling run);
+  // when present it leads the quieter insights, ahead of the AR/seasonal notes.
+  const [heroInsight, ...restInsights] = INSIGHTS;
+  const productionGap = getProductionGapInsight();
+  const quietInsights = productionGap ? [productionGap, ...restInsights] : restInsights;
 
   // Max bottles among top wines, for the proportional bars.
   const maxWineBottles = Math.max(...topWines.map((t) => t.bottles), 1);
@@ -98,9 +103,9 @@ export function Dashboard() {
 
       {/* ---- KPI ROW (each tile links to its page) ----------------------- */}
       <div className="grid grid-cols-2 gap-s4 sm:grid-cols-3 xl:grid-cols-5">
-        {/* Giacenze -> Catalogo (where stock lives per wine). */}
+        {/* Giacenze -> the movement-style stock view. */}
         <Stat
-          to="/catalogo"
+          to="/giacenze"
           label="Giacenze totali"
           value={
             <>
@@ -185,7 +190,7 @@ export function Dashboard() {
           title="Scorte basse"
           caption="Annate in commercio sotto soglia"
           action={
-            <Link to="/inventario">
+            <Link to="/giacenze">
               <Button variant="ghost" size="sm">
                 Giacenze
               </Button>

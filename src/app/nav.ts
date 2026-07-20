@@ -40,8 +40,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Cantina",
     items: [
       { label: "Catalogo", to: "/catalogo" },
-      // Inventario is labelled "Giacenze" in the UI per the brief.
-      { label: "Giacenze", to: "/inventario" },
+      { label: "Giacenze", to: "/giacenze" },
       { label: "Produzione", to: "/produzione" },
     ],
   },

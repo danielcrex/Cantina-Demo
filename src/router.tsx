@@ -10,6 +10,8 @@ import { Fatture } from "@/pages/Fatture";
 import { InvoiceDetail } from "@/pages/InvoiceDetail";
 import { Clienti } from "@/pages/Clienti";
 import { CustomerDetail } from "@/pages/CustomerDetail";
+import { Giacenze } from "@/pages/Giacenze";
+import { Produzione } from "@/pages/Produzione";
 import { ComingSoon } from "@/pages/ComingSoon";
 import { Login } from "@/pages/Login";
 
@@ -47,8 +49,10 @@ export const router = createBrowserRouter([
       // Cantina
       { path: "catalogo", element: <Catalogo /> },
       { path: "catalogo/:wineId", element: <WineDetail /> },
-      { path: "inventario", element: <ComingSoon /> },
-      { path: "produzione", element: <ComingSoon /> },
+      { path: "giacenze", element: <Giacenze /> },
+      // Legacy path kept as a redirect so old links never dead-end.
+      { path: "inventario", element: <Navigate to="/giacenze" replace /> },
+      { path: "produzione", element: <Produzione /> },
 
       // Admin
       { path: "fatture", element: <Fatture /> },

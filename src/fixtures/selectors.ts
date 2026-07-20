@@ -5,11 +5,12 @@
  * Nothing here mutates; it only reads the hardcoded arrays and returns view
  * models. "Now" is a fixed demo date so the story stays coherent offline.
  */
-import type { Wine, Vintage, Order, Customer, Invoice } from "./types";
+import type { Wine, Vintage, Order, Customer, Invoice, Insight, Production } from "./types";
 import { WINES, VINTAGES } from "./wines";
 import { CUSTOMERS } from "./customers";
 import { ORDERS } from "./orders";
 import { INVOICES } from "./invoices";
+import { PRODUCTIONS } from "./productions";
 import { monthNameIt, parseISODate } from "@/lib/format";
 // Single "today" anchor lives in one place (src/lib/demoDate.ts); re-exported
 // here so existing `@/fixtures` imports keep working.
@@ -130,6 +131,32 @@ export function getWineStockStatus(wineId: string): WineStockStatus {
   if (worstRatio < 0.7) return "critico";
   if (worstRatio <= 1) return "basso";
   return "disponibile";
+}
+
+/**
+ * Per-vintage stock flag for the Giacenze table. Same threshold logic as the
+ * wine-level status, so Pentumas 2023 reads Critico and Turricula 2020 Basso,
+ * consistent with Catalogo.
+ */
+export type VintageStockFlag =
+  | "esaurito"
+  | "affinamento"
+  | "critico"
+  | "basso"
+  | "disponibile";
+
+export function vintageStockFlag(v: Vintage): VintageStockFlag {
+  if (v.status === "esaurito" || v.stockBottles === 0) return "esaurito";
+  if (v.status === "in-affinamento") return "affinamento";
+  const ratio = v.stockBottles / v.lowStockThreshold;
+  if (ratio < 0.7) return "critico";
+  if (ratio <= 1) return "basso";
+  return "disponibile";
+}
+
+/** Every wine×vintage joined with its wine, for the Giacenze view. */
+export function getVintageRows(): Array<{ wine: Wine; vintage: Vintage }> {
+  return VINTAGES.map((v) => ({ wine: wineById(v.wineId)!, vintage: v }));
 }
 
 /** In-commercio vintages at/under their low-stock threshold, worst first. */
@@ -351,5 +378,43 @@ export function getPentumasRunway(): {
     monthsLeft,
     runoutDate,
     runoutMonth: monthNameIt(runoutDate),
+  };
+}
+
+// ---- produzione ------------------------------------------------------------
+
+/** All production runs, most recent first. */
+export function getProductions(): Production[] {
+  return [...PRODUCTIONS].sort((a, b) => b.date.localeCompare(a.date));
+}
+
+/** Whether a bottling run exists for a given wine + vintage year. */
+export function productionRunExists(wineId: string, vintageYear: number): boolean {
+  return PRODUCTIONS.some((p) => p.wineId === wineId && p.vintageYear === vintageYear);
+}
+
+/**
+ * THE PRODUCTION-GAP INSIGHT — derived, not hardcoded.
+ * ---------------------------------------------------------------------------
+ * Stitches three datasets: the Pentumas 2023 runway (runs out ~marzo), the
+ * inventory (168 bottles left) and PRODUCTION (no 2024 Pentumas bottling run).
+ * When the gap holds, it returns a plain-Italian insight naming the real
+ * run-out month; otherwise null. This is "AI across ALL your data" — true, calm.
+ */
+export function getProductionGapInsight(): Insight | null {
+  const runway = getPentumasRunway();
+  const nextVintageQueued = productionRunExists("w-pentumas", 2024);
+  if (nextVintageQueued) return null; // gap already covered
+
+  return {
+    id: "ins-production-gap",
+    kind: "production-gap",
+    wineId: "w-pentumas",
+    severity: "attention",
+    headlineIt:
+      `Il Pentumas 2023 esaurisce a ${runway.runoutMonth} e non risulta un ` +
+      `imbottigliamento 2024 in programma. Vuoi pianificare la produzione o ` +
+      `avvisare i clienti?`,
+    actionLabelIt: "Pianifica produzione",
   };
 }

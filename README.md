@@ -9,10 +9,12 @@ server, no runtime network calls. All data is hardcoded TypeScript fixtures.
 Design system: **Daniele's Touch** (pure white, hairline borders, soft shadows, one
 Cobalt accent, Figtree). Italian-language UI.
 
-> **Status — Step 0 (scaffold + theme + shell).** Routing, theme, self-hosted fonts,
-> the app shell, the auto-login trick and the `/login` prop are in place. `/dashboard`
-> is a minimal placeholder; every other nav item routes to an "In arrivo" stub. The
-> Dashboard, Catalogo, Assistant and other screens come in later steps.
+> **Status — complete demo.** Screens: Dashboard, Catalogo (+ wine detail), Assistant
+> (chat + order capture), Ordini (+ detail), Fatture (+ detail), Clienti (+ detail),
+> Giacenze, Produzione. AI moments: the proactive Pentumas stock-runway hero, the
+> production-gap insight (runway + no 2024 bottling run), and the scripted order-capture.
+> Compliance / Sedi / Governance are intentional "In arrivo" panels. Auto-login into
+> `/dashboard`; `/login` is a reachable prop.
 
 ## Stack
 
@@ -49,6 +51,21 @@ npm run preview  # serve the production build locally
 `public/_redirects` contains `/* /index.html 200` so client-side deep links (e.g.
 `/login`, `/catalogo`) resolve on Cloudflare Pages' static SPA host. Do **not** add any
 server or edge functions — this is a pure static deploy.
+
+## Pinning the demo date for a pitch day
+
+The whole demo reads "today" from a single anchor: **`src/lib/demoDate.ts`** →
+`DEMO_TODAY`. Every date-driven figure (the header date, the "ricavi di <mese>" KPI,
+the Pentumas runway/"a marzo", overdue/AR checks, the revenue graph) is derived from it,
+so the timeline is always internally consistent.
+
+It is **pinned to a fixed date** (20 gennaio 2026) on purpose: the fixtures are a static
+snapshot around that month, so a live clock would leave the current-month KPI empty and
+the graph ending before "today". **To pin another pitch day**, change the one line in
+`src/lib/demoDate.ts` (keep it on/after the newest fixture order so the runway and KPIs
+stay coherent). The runway itself is robust — its velocity is measured from the most
+recent order data and projected forward from `DEMO_TODAY`, so the run-out is always in
+the future.
 
 ## Brand & estate assets
 

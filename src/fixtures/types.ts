@@ -101,9 +101,19 @@ export interface Invoice {
 
 export interface Insight {
   id: string;
-  kind: "fast-mover" | "stock-runway" | "ar" | "seasonal";
+  kind: "fast-mover" | "stock-runway" | "ar" | "seasonal" | "production-gap";
   wineId?: string;
   severity: "info" | "attention";
   headlineIt: string;
   actionLabelIt?: string;
+}
+
+/** A bottling / production run for a wine's vintage. */
+export interface Production {
+  id: string;
+  wineId: string;
+  vintageYear: number;
+  date: string; // ISO YYYY-MM-DD
+  bottlesProduced: number;
+  status: "completato" | "in-programma";
 }

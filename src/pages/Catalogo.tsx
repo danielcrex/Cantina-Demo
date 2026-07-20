@@ -1,7 +1,8 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { InertButton } from "@/components/ui/InertButton";
 import {
   WINES,
@@ -31,7 +32,10 @@ export function Catalogo() {
         subtitle="I vini di Monte Fenosu, con la disponibilità aggiornata per annata."
         actions={
           <>
-            <InertButton variant="secondary">Giacenze</InertButton>
+            {/* Giacenze is a real screen now — link there. */}
+            <Link to="/giacenze">
+              <Button variant="secondary">Giacenze</Button>
+            </Link>
             <InertButton variant="primary">Nuovo vino</InertButton>
           </>
         }

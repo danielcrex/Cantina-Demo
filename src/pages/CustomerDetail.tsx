@@ -86,8 +86,8 @@ export function CustomerDetail() {
         </div>
       </header>
 
-      {/* KPI tiles */}
-      <div className="mt-s6 grid grid-cols-2 gap-s4 lg:grid-cols-4">
+      {/* KPI tiles — 1-up small phone, 2-up wide phone; lg:grid-cols-4 unchanged. */}
+      <div className="mt-s6 grid grid-cols-1 gap-s4 min-[480px]:grid-cols-2 lg:grid-cols-4">
         <Stat label="Ordini" value={formatNumber(customer.ordersCount)} />
         <Stat label="Ultimo ordine" value={formatDate(customer.lastOrderDate)} />
         <Stat label="Fatturato totale" value={formatEuroCompact(customer.revenueEur)} />
@@ -176,7 +176,7 @@ export function CustomerDetail() {
       )}
 
       {/* Billing + live VAT treatment */}
-      <div className="mt-s5 grid gap-s5 lg:grid-cols-2">
+      <div className="mt-s5 grid grid-cols-1 gap-s5 lg:grid-cols-2">
         <Panel title="Dati di fatturazione">
           <dl className="space-y-s4">
             <div>

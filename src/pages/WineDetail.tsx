@@ -211,7 +211,7 @@ export function WineDetail() {
       {/* AWARDS — prominent highlight (only when the wine has them). */}
       {wine.awards.length > 0 && (
         <Panel title="Riconoscimenti" caption="I premi di questo vino" className="mt-s6">
-          <div className="grid gap-s4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-s4 sm:grid-cols-2">
             {wine.awards.map((a, i) => (
               <AwardMedal key={`${a.org}-${a.year}-${i}`} award={a} />
             ))}

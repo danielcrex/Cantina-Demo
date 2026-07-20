@@ -5,10 +5,15 @@ import { AccountMenu } from "@/app/AccountMenu";
 import { NAV_GROUPS, type NavItem } from "@/app/nav";
 
 /**
- * Sidebar — fixed left rail on tablet.
+ * Sidebar — the app navigation.
  * ---------------------------------------------------------------------------
+ * `SidebarContent` is the shared inner layout (brand + grouped nav + account
+ * menu + footer credit). It is rendered in two shells:
+ *   - desktop rail `<Sidebar>` — fixed left column, visible only at lg+ (the
+ *     locked tablet layout);
+ *   - mobile `<MobileDrawer>` — an overlay drawer below lg.
  * Structure top to bottom:
- *   - "Cantina" wordmark (the app name)
+ *   - Cantina logo (spans the padded column width)
  *   - grouped navigation (section labels are NON-interactive headers)
  *   - account / logout menu
  *   - "Cantina è offerto da ARBISU" footer credit (the only ARBISU in-app)
@@ -16,10 +21,12 @@ import { NAV_GROUPS, type NavItem } from "@/app/nav";
 
 // A single nav link. Active state uses accent-weak fill + accent text (the one
 // place the accent appears in the nav). De-emphasized items sit dimmer.
-function NavRow({ item }: { item: NavItem }) {
+// `onNavigate` lets the mobile drawer close immediately on tap.
+function NavRow({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
   return (
     <NavLink
       to={item.to}
+      onClick={onNavigate}
       className={({ isActive }) =>
         [
           "flex min-h-[44px] items-center rounded-btn px-s3 text-sm transition-colors",
@@ -37,13 +44,13 @@ function NavRow({ item }: { item: NavItem }) {
   );
 }
 
-export function Sidebar() {
+/** Shared inner content for both the desktop rail and the mobile drawer. */
+export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
-    <aside className="flex h-full w-[264px] flex-none flex-col border-r border-border bg-bg">
-      {/* Brand block */}
+    <>
+      {/* Brand block — the Cantina logo spans the column within its padding. */}
       <div className="px-s5 pb-s5 pt-s6">
-        {/* App brand — the Cantina logo (kept modest so it doesn't dominate). */}
-        <CantinaWordmark className="h-10 w-auto" />
+        <CantinaWordmark className="h-auto w-full" />
       </div>
 
       {/* Navigation — scrolls independently if the list ever grows. */}
@@ -58,7 +65,7 @@ export function Sidebar() {
             )}
             <div className="flex flex-col gap-[2px]">
               {group.items.map((item) => (
-                <NavRow key={item.to} item={item} />
+                <NavRow key={item.to} item={item} onNavigate={onNavigate} />
               ))}
             </div>
           </div>
@@ -70,6 +77,18 @@ export function Sidebar() {
         <AccountMenu />
         <FooterCredit className="mt-s4 w-full" />
       </div>
+    </>
+  );
+}
+
+/**
+ * Desktop rail — fixed left column. Hidden below lg (mobile uses the drawer),
+ * shown as the flex column at lg+ so the tablet layout is unchanged.
+ */
+export function Sidebar() {
+  return (
+    <aside className="hidden h-full w-[264px] flex-none flex-col border-r border-border bg-bg lg:flex">
+      <SidebarContent />
     </aside>
   );
 }

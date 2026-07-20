@@ -97,10 +97,13 @@ export function OrderDetail() {
         </div>
       </header>
 
-      {/* Lifecycle */}
+      {/* Lifecycle — on a narrow phone the 6-step row scrolls WITHIN the panel
+          (min width) instead of cramping; roomy and unchanged on tablet. */}
       <Panel title="Stato di lavorazione" className="mt-s6">
-        <div className="px-s2 pt-s2">
-          <LifecycleStepper status={order.status} />
+        <div className="overflow-x-auto px-s2 pt-s2">
+          <div className="min-w-[440px]">
+            <LifecycleStepper status={order.status} />
+          </div>
         </div>
       </Panel>
 

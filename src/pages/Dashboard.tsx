@@ -101,8 +101,10 @@ export function Dashboard() {
         <EstateHero />
       </div>
 
-      {/* ---- KPI ROW (each tile links to its page) ----------------------- */}
-      <div className="grid grid-cols-2 gap-s4 sm:grid-cols-3 xl:grid-cols-5">
+      {/* ---- KPI ROW (each tile links to its page) -----------------------
+          Mobile-first: 1-up on small phones, 2-up on wide phones. The sm:/xl:
+          classes (>=640 / >=1280) are untouched, so lg+ stays 3-up then 5-up. */}
+      <div className="grid grid-cols-1 gap-s4 min-[480px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
         {/* Giacenze -> the movement-style stock view. */}
         <Stat
           to="/giacenze"
@@ -167,7 +169,7 @@ export function Dashboard() {
           </p>
         </div>
         <HeroInsight insight={heroInsight} />
-        <div className="grid gap-s3 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-s3 lg:grid-cols-2">
           {quietInsights.map((ins) => (
             <QuietInsight key={ins.id} insight={ins} />
           ))}
@@ -184,7 +186,7 @@ export function Dashboard() {
       </Panel>
 
       {/* ---- PANELS: row 1 ----------------------------------------------- */}
-      <div className="mt-s6 grid gap-s5 lg:grid-cols-3">
+      <div className="mt-s6 grid grid-cols-1 gap-s5 lg:grid-cols-3">
         {/* Alert scorte basse */}
         <Panel
           title="Scorte basse"
@@ -279,7 +281,7 @@ export function Dashboard() {
       </div>
 
       {/* ---- PANELS: row 2 ----------------------------------------------- */}
-      <div className="mt-s5 grid gap-s5 lg:grid-cols-3">
+      <div className="mt-s5 grid grid-cols-1 gap-s5 lg:grid-cols-3">
         {/* Top vini */}
         <Panel title="Vini più venduti" caption="Bottiglie negli ultimi mesi">
           <ul className="space-y-s4">

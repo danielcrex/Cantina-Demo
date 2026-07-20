@@ -149,8 +149,9 @@ export function Clienti() {
                       </p>
                     </div>
 
-                    {/* AR indicator (only when there is outstanding). */}
-                    <div className="w-[120px] flex-none text-right">
+                    {/* AR indicator (only when there is outstanding). Sizes to
+                        content on phone; fixed column at sm+. */}
+                    <div className="flex-none text-right sm:w-[120px]">
                       {ar === "scaduto" ? (
                         <Badge tone="err">Scaduto</Badge>
                       ) : ar === "in-attesa" && outstanding > 0 ? (
@@ -160,12 +161,13 @@ export function Clienti() {
                       )}
                     </div>
 
+                    {/* Chevron hidden on phone to save width. */}
                     <svg
                       width="18"
                       height="18"
                       viewBox="0 0 24 24"
                       fill="none"
-                      className="flex-none text-ink-3"
+                      className="hidden flex-none text-ink-3 sm:block"
                       aria-hidden="true"
                     >
                       <path

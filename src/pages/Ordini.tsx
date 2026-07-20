@@ -166,10 +166,12 @@ export function Ordini() {
                 <li key={o.id}>
                   <button
                     onClick={() => navigate(`/ordini/${o.id}`)}
-                    className="flex w-full items-center gap-s4 px-s5 py-s4 text-left transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+                    // Phone: wraps to two lines (meta, then badges). Tablet
+                    // (sm+): single nowrap row — unchanged.
+                    className="flex w-full flex-wrap items-center gap-x-s4 gap-y-s2 px-s5 py-s4 text-left transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset sm:flex-nowrap"
                   >
                     {/* Numero + cliente + canale + data */}
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1 basis-full sm:basis-auto">
                       <div className="flex items-center gap-s3">
                         <span className="num text-[15px] font-bold text-ink">{o.number}</span>
                         <span className="truncate text-[14px] text-ink-2">
@@ -190,20 +192,20 @@ export function Ordini() {
                     </div>
 
                     {/* Two badges: stato + pagamento */}
-                    <div className="flex w-[230px] flex-none items-center justify-end gap-s2">
+                    <div className="flex flex-none items-center gap-s2 sm:w-[230px] sm:justify-end">
                       <Badge tone={ORDER_STATUS_TONE[o.status]}>{cap(o.status)}</Badge>
                       <Badge tone={PAYMENT_TONE[o.paymentStatus]}>
                         {PAYMENT_LABEL[o.paymentStatus]}
                       </Badge>
                     </div>
 
-                    {/* Chevron */}
+                    {/* Chevron (hidden on phone to save width). */}
                     <svg
                       width="18"
                       height="18"
                       viewBox="0 0 24 24"
                       fill="none"
-                      className="flex-none text-ink-3"
+                      className="hidden flex-none text-ink-3 sm:block"
                       aria-hidden="true"
                     >
                       <path

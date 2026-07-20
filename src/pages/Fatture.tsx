@@ -97,7 +97,8 @@ export function Fatture() {
         <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-ink-3">
           Scaduto per fascia
         </p>
-        <div className="mt-s3 grid grid-cols-3 gap-s4">
+        {/* 1-up on phone, 3-up from ~520px up (so lg+ is unchanged). */}
+        <div className="mt-s3 grid grid-cols-1 gap-s4 min-[520px]:grid-cols-3">
           {[
             ["0–30 giorni", ageing.b0_30],
             ["31–60 giorni", ageing.b31_60],
@@ -186,7 +187,9 @@ export function Fatture() {
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-s3">
-                        <span className="num text-[15px] font-bold text-ink">{inv.number}</span>
+                        <span className="num whitespace-nowrap text-[15px] font-bold text-ink">
+                          {inv.number}
+                        </span>
                         <span className="truncate text-[14px] text-ink-2">
                           {customer?.name ?? "—"}
                         </span>
@@ -205,16 +208,18 @@ export function Fatture() {
                       </span>
                     </div>
 
-                    <div className="w-[120px] flex-none text-right">
+                    {/* Badge sizes to content on phone; fixed column at sm+. */}
+                    <div className="flex-none text-right sm:w-[120px]">
                       <Badge tone={badge.tone}>{badge.label}</Badge>
                     </div>
 
+                    {/* Chevron hidden on phone to save width. */}
                     <svg
                       width="18"
                       height="18"
                       viewBox="0 0 24 24"
                       fill="none"
-                      className="flex-none text-ink-3"
+                      className="hidden flex-none text-ink-3 sm:block"
                       aria-hidden="true"
                     >
                       <path

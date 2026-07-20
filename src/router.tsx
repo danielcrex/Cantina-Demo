@@ -3,6 +3,7 @@ import { AppShell } from "@/app/AppShell";
 import { Dashboard } from "@/pages/Dashboard";
 import { Catalogo } from "@/pages/Catalogo";
 import { WineDetail } from "@/pages/WineDetail";
+import { Assistant } from "@/pages/Assistant";
 import { ComingSoon } from "@/pages/ComingSoon";
 import { Login } from "@/pages/Login";
 
@@ -29,9 +30,9 @@ export const router = createBrowserRouter([
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: "dashboard", element: <Dashboard /> },
 
-      // Vendite
-      { path: "capture", element: <ComingSoon /> },
-      { path: "assistant", element: <ComingSoon /> },
+      // Vendite — Assistant is the combined AI page; /capture redirects to it.
+      { path: "assistant", element: <Assistant /> },
+      { path: "capture", element: <Navigate to="/assistant" replace /> },
       { path: "ordini", element: <ComingSoon /> },
       { path: "clienti", element: <ComingSoon /> },
 

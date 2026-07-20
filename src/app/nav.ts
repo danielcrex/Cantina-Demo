@@ -30,7 +30,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Vendite",
     items: [
-      { label: "Capture", to: "/capture" },
+      // Assistant is the combined AI page (chat + order capture in one thread).
       { label: "Assistant", to: "/assistant" },
       { label: "Ordini", to: "/ordini" },
       { label: "Clienti", to: "/clienti" },
